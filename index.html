@@ -1,0 +1,174 @@
+<!--
+Projeto: Odontoprev - Evotech
+Banco de Dados: MongoDB (NoSQL)
+Finalidade: Predição de tratamentos curativos com Machine Learning + App com interface
+Tecnologias: MongoDB, HTML, Bootstrap, JavaScript (Vanilla)
+-->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evotech - Projeto Odontoprev</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { padding: 2rem; background-color: #f9f9f9; }
+    .card { margin-bottom: 1rem; }
+    .json-output { white-space: pre-wrap; background-color: #eee; padding: 1rem; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4 text-primary">Projeto MongoDB - Odontoprev</h1>
+
+    <!-- Justificativa -->
+    <div class="card">
+      <div class="card-body">
+        <h3>Justificativa da Escolha do MongoDB</h3>
+        <p>MongoDB é ideal para esse projeto pela sua flexibilidade de esquema, agilidade no armazenamento e recuperação de documentos em JSON, escalabilidade horizontal e integração facilitada com aplicações web/mobile.</p>
+      </div>
+    </div>
+
+    <!-- Modelo de Dados -->
+    <div class="card">
+      <div class="card-body">
+        <h3>Modelo de Dados</h3>
+        <ul>
+          <li><strong>pacientes</strong>: informações pessoais, risco, histórico</li>
+          <li><strong>consultas</strong>: tipo, data, avaliação</li>
+          <li><strong>tratamentos</strong>: tipo (curativo/preventivo), custo, status</li>
+          <li><strong>dentistas</strong>: especialidade, localização</li>
+          <li><strong>incentivos</strong>: pontuação, brindes, ações educativas</li>
+          <li><strong>gamificacao</strong>: desafios, conquistas, histórico de pontuação</li>
+          <li><strong>documentos_pacientes</strong>: arquivos de raio-x, prescrições, imagens intraorais</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- JSON de exemplo -->
+    <div class="card">
+      <div class="card-body">
+        <h3>Exemplo de Documentos JSON</h3>
+        <p>Documento da coleção <code>pacientes</code>:</p>
+        <div class="json-output">
+{
+  "_id": "p001",
+  "nome": "Ana Paula",
+  "idade": 34,
+  "sexo": "F",
+  "plano": "Premium",
+  "historico_consultas": ["c101", "c102"],
+  "possui_trat_preventivo": true,
+  "possui_trat_curativo": false,
+  "score_risco": 0.3,
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "documentos": [
+    {"tipo": "raio-x", "url": "link1.jpg", "data": "2024-10-01"},
+    {"tipo": "prescrição", "url": "link2.pdf", "data": "2024-09-12"}
+  ]
+}
+        </div>
+        <p>Documento da coleção <code>gamificacao</code>:</p>
+        <div class="json-output">
+{
+  "paciente_id": "p001",
+  "pontos": 120,
+  "conquistas": ["Primeira Consulta", "Consulta Preventiva"],
+  "desafios_completos": [
+    {"titulo": "Consulta em Dia", "data": "2024-11-01"},
+    {"titulo": "Cuidados em Casa", "data": "2024-11-03"}
+  ],
+  "ranking_local": 5,
+  "recompensas_recebidas": ["Kit Escova", "10% Desconto"]
+}
+        </div>
+      </div>
+    </div>
+
+    <!-- Interface CRUD Simulada -->
+    <div class="card">
+      <div class="card-body">
+        <h3>Interface CRUD (Simulação)</h3>
+        <form id="pacienteForm">
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="nome" required>
+          </div>
+          <div class="mb-3">
+            <label for="idade" class="form-label">Idade</label>
+            <input type="number" class="form-control" id="idade" required>
+          </div>
+          <div class="mb-3">
+            <label for="plano" class="form-label">Plano</label>
+            <select class="form-select" id="plano">
+              <option value="Básico">Básico</option>
+              <option value="Intermediário">Intermediário</option>
+              <option value="Premium">Premium</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Inserir Paciente</button>
+        </form>
+        <hr>
+        <h5>Pacientes Inseridos:</h5>
+        <pre id="output"></pre>
+      </div>
+    </div>
+
+    <!-- Exportação de Dados -->
+    <div class="card">
+      <div class="card-body">
+        <h3>Exportação de Dataset</h3>
+        <p>Use o comando abaixo no terminal MongoDB:</p>
+        <code>mongoexport --db odontoprev --collection pacientes --out pacientes.json</code>
+      </div>
+    </div>
+
+    <!-- Performance e Escalabilidade -->
+    <div class="card">
+      <div class="card-body">
+        <h3>Análise de Performance e Escalabilidade</h3>
+        <ul>
+          <li>MongoDB escala horizontalmente com sharding.</li>
+          <li>Alta performance com indexação em <code>paciente_id</code>, <code>data</code>, <code>tipo</code>.</li>
+          <li>Flexível para grandes volumes e estruturas variantes.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Segurança e Integração -->
+    <div class="card">
+      <div class="card-body">
+        <h3>Segurança e Integração</h3>
+        <ul>
+          <li>Autenticação baseada em usuários com roles limitadas.</li>
+          <li>Conexão segura via TLS/SSL.</li>
+          <li>Integração com Python (PyMongo), Node.js (Mongoose), etc.</li>
+          <li>MongoDB Atlas como opção gerenciada.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pacientes = [];
+    document.getElementById("pacienteForm").onsubmit = e => {
+      e.preventDefault();
+      const paciente = {
+        nome: document.getElementById("nome").value,
+        idade: parseInt(document.getElementById("idade").value),
+        plano: document.getElementById("plano").value,
+        possui_trat_preventivo: true,
+        possui_trat_curativo: false,
+        score_risco: Math.random(),
+        cidade: "São Paulo",
+        estado: "SP"
+      };
+      pacientes.push(paciente);
+      document.getElementById("output").textContent = JSON.stringify(pacientes, null, 2);
+      document.getElementById("pacienteForm").reset();
+    }
+  </script>
+</body>
+</html>
