@@ -2,12 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./db');
-
-
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Configuração para servir arquivos estáticos
+app.use(express.static(path.join(__dirname)));
 
 connectDB();
 
@@ -57,11 +59,6 @@ registerCRUDRoutes('Tratamentos', Tratamento);
 registerCRUDRoutes('Incentivos', Incentivo);
 registerCRUDRoutes('Gamificacao', Gamificacao);
 registerCRUDRoutes('Documentos', Documento);
-
-const path = require('path');
-
-// Servir arquivos estáticos (como main.js)
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Servir index.html
 app.get('/', (req, res) => {
