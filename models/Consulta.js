@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 
 const consultaSchema = new mongoose.Schema({
-  pacienteId: mongoose.Schema.Types.ObjectId,
-  data: Date,
-  dentista: String,
-  especialidade: String,
-  tipo_consulta: String,
-  observacoes: String,
-  realizada: Boolean
+  pacienteId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  data: { type: Date, required: true },
+  dentista: { type: String, required: true },
+  especialidade: { type: String, default: '' },
+  tipo_consulta: { type: String, required: true },
+  observacoes: { type: String, default: '' },
+  realizada: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model('Consulta', consultaSchema);

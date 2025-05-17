@@ -60,11 +60,24 @@ registerCRUDRoutes('Incentivos', Incentivo);
 registerCRUDRoutes('Gamificacao', Gamificacao);
 registerCRUDRoutes('Documentos', Documento);
 
+// Adicionar logs na rota POST de /documentos para depuração
+app.post('/documentos', async (req, res) => {
+  console.log('📥 Dados recebidos no POST /documentos:', req.body); // Log dos dados recebidos
+  try {
+    const item = new Documento(req.body);
+    await item.save();
+    console.log('✅ Documento salvo no MongoDB:', item); // Log do documento salvo
+    res.json({ message: 'Documento criado com sucesso!' });
+  } catch (error) {
+    console.error('❌ Erro ao salvar documento:', error); // Log de erro
+    res.status(500).json({ message: 'Erro ao salvar documento', error });
+  }
+});
+
 // Servir index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
-
 
 app.listen(3000, () => {
   console.log('🚀 Servidor rodando em http://localhost:3000');

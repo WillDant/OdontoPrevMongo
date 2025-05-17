@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const incentivoSchema = new mongoose.Schema({
-  titulo: String,
-  descricao: String,
-  pontos_recompensa: Number,
-  ativo: Boolean,
-  data_inicio: Date,
-  data_fim: Date
+  titulo: { type: String, required: true },
+  descricao: { type: String, default: '' },
+  pontos_recompensa: { type: Number, required: true },
+  ativo: { type: Boolean, default: true },
+  data_inicio: { type: Date, default: Date.now },
+  data_fim: { type: Date, default: null }
 });
 
 module.exports = mongoose.model('Incentivo', incentivoSchema);

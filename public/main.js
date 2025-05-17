@@ -16,7 +16,12 @@ async function carregarPacientes() {
   }
   document.getElementById('formPaciente').addEventListener('submit', async e => {
     e.preventDefault();
-    const paciente = { nome: nome.value, idade: idade.value, sexo: sexo.value, plano: plano.value };
+    const paciente = { 
+      nome: nome.value, 
+      idade: parseInt(idade.value), 
+      sexo: sexo.value, 
+      plano: plano.value 
+    };
     const id = e.target.dataset.id;
     const url = id ? `/pacientes/${id}` : '/pacientes';
     const method = id ? 'PUT' : 'POST';
@@ -52,8 +57,9 @@ async function carregarPacientes() {
     const consulta = {
       pacienteId: pacienteConsulta.value,
       dentista: dentistaId.value,
-      dataConsulta: dataConsulta.value,
-      tipoConsulta: tipoConsulta.value
+      data: dataConsulta.value,
+      tipo_consulta: tipoConsulta.value,
+      observacoes: '' // Adicionar campo vazio para evitar inconsistências
     };
     const id = e.target.dataset.id;
     const url = id ? `/consultas/${id}` : '/consultas';
@@ -92,10 +98,11 @@ async function carregarTratamentos() {
     e.preventDefault();
     const t = {
       pacienteId: pacienteTratamento.value,
-      descricao: descricaoTratamento.value,
-      dataTratamento: dataTratamento.value,
-      custoEstimado: custoEstimado.value,
-      tipoTratamento: tipoTratamento.value
+      tipo_tratamento: tipoTratamento.value,
+      data_inicio: dataTratamento.value,
+      custo_estimado: parseFloat(custoEstimado.value),
+      status: 'pendente', // Adicionar status padrão
+      profissional_responsavel: descricaoTratamento.value
     };
     const id = e.target.dataset.id;
     const url = id ? `/tratamentos/${id}` : '/tratamentos';
@@ -136,7 +143,10 @@ async function carregarTratamentos() {
     const i = {
       titulo: tituloIncentivo.value,
       descricao: descricaoIncentivo.value,
-      bonusIncentivo: bonusIncentivo.value
+      pontos_recompensa: parseInt(bonusIncentivo.value),
+      ativo: true, // Adicionar ativo padrão
+      data_inicio: new Date().toISOString(), // Adicionar data padrão
+      data_fim: null // Adicionar campo nulo para evitar inconsistências
     };
     const id = e.target.dataset.id;
     const url = id ? `/incentivos/${id}` : '/incentivos';
@@ -174,8 +184,10 @@ async function carregarTratamentos() {
     e.preventDefault();
     const g = {
       pacienteId: pacienteGamificacao.value,
-      pontosGamificacao: pontosGamificacao.value,
-      conquistas: conquistasGamificacao.value.split(',')
+      desafio: conquistasGamificacao.value.split(',')[0] || 'Desafio padrão', // Adicionar desafio padrão
+      concluido: false, // Adicionar concluído padrão
+      pontos_ganhos: parseInt(pontosGamificacao.value),
+      data_conclusao: null // Adicionar campo nulo para evitar inconsistências
     };
     const id = e.target.dataset.id;
     const url = id ? `/gamificacao/${id}` : '/gamificacao';
@@ -202,7 +214,7 @@ async function carregarTratamentos() {
     out.innerHTML = '';
     dados.forEach(d => {
       out.innerHTML += `<div class="d-flex justify-content-between">
-        <span>${d.tipoDocumento} - ${d.urlDocumento}</span>
+        <span>${d.tipo_documento} - ${d.url_arquivo}</span>
         <span>
           <button onclick="editarDocumento('${d._id}')" class="btn btn-sm btn-primary">Editar</button>
           <button onclick="deletarDocumento('${d._id}')" class="btn btn-sm btn-danger">Excluir</button>
@@ -212,9 +224,11 @@ async function carregarTratamentos() {
   document.getElementById('formDocumento').addEventListener('submit', async e => {
     e.preventDefault();
     const doc = {
-      pacienteId: pacienteDocumento.value,
-      tipoDocumento: tipoDocumento.value,
-      urlDocumento: urlDocumento.value
+      pacienteId: pacienteDocumento.value, // Deve corresponder ao modelo
+      tipo_documento: tipoDocumento.value, // Deve corresponder ao modelo
+      url_arquivo: urlDocumento.value,     // Deve corresponder ao modelo
+      descricao: '', // Adicionar descrição padrão
+      data_upload: new Date().toISOString() // Adicionar data de upload padrão
     };
     const id = e.target.dataset.id;
     const url = id ? `/documentos/${id}` : '/documentos';
@@ -224,9 +238,9 @@ async function carregarTratamentos() {
   });
   async function editarDocumento(id) {
     const d = await (await fetch(`/documentos/${id}`)).json();
-    pacienteDocumento.value = d.pacienteId;
-    tipoDocumento.value = d.tipoDocumento;
-    urlDocumento.value = d.urlDocumento;
+    pacienteDocumento.value = d.pacienteId; // Deve corresponder ao modelo
+    tipoDocumento.value = d.tipo_documento; // Deve corresponder ao modelo
+    urlDocumento.value = d.url_arquivo;     // Deve corresponder ao modelo
     document.getElementById('formDocumento').dataset.id = d._id;
   }
   async function deletarDocumento(id) {
@@ -240,4 +254,3 @@ async function carregarTratamentos() {
   carregarIncentivos();
   carregarGamificacao();
   carregarDocumentos();
-  
