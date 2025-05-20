@@ -5,10 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Odontoprev - Sistema CRUD</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
   <style>
-    body { padding: 2rem; background-color: #f5f5f5; }
-    .card { margin-bottom: 2rem; }
-    .json-output { white-space: pre-wrap; background: #f8f9fa; padding: 1rem; border-radius: 8px; }
+    body { padding: 2rem; background: linear-gradient(135deg, #e3f0ff 0%, #b0cfff 100%); min-height: 100vh; }
+    .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+    .card { margin-bottom: 2.5rem; box-shadow: 0 2px 16px rgba(25, 118, 210, 0.10); border-radius: 18px; border: none; background: #fff; width: 100%; max-width: 1200px; }
+    .card-body { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 2.5rem 2rem; box-sizing: border-box; }
+    .card-title { font-weight: 700; color: #1565c0; letter-spacing: 0.5px; text-align: center; }
+    form { width: 100%; max-width: 1000px; margin: 0 auto; padding: 1.2rem 0.5rem; box-sizing: border-box; }
+    .json-output, .json-output-table { width: 100%; max-width: 100%; margin: 0 auto; }
+    .json-output { background: #e3f2fd; padding: 1.2rem; border-radius: 14px; border: 1.5px solid #90caf9; font-size: 1rem; color: #0d47a1; }
+    .tabela-scroll-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    .json-output-table {
+      min-width: 900px;
+      width: 100%;
+      max-width: none;
+      background: #f4faff;
+      border-radius: 10px;
+      border: 1.5px solid #90caf9;
+      margin-top: 1rem;
+      table-layout: auto;
+      display: table;
+    }
+    .json-output-table thead, .json-output-table tbody {
+      width: 100%;
+      display: table;
+      table-layout: auto;
+    }
+    .json-output-table th, .json-output-table td {
+      padding: 0.7rem 1.1rem;
+      text-align: center !important;
+      vertical-align: middle;
+      word-break: break-word;
+      white-space: normal;
+    }
+    .json-output-table th {
+      background: #1976d2;
+      color: #fff;
+      font-weight: 600;
+      border-bottom: 2px solid #90caf9;
+    }
+    .json-output-table tr {
+      border-bottom: 1px solid #bbdefb;
+    }
+    .json-output-table td {
+      background: #e3f0ff;
+    }
+    .json-output-table td:last-child {
+      white-space: nowrap;
+    }
+    .paciente-actions, .acoes-tabela { display: flex; gap: 0.5rem; justify-content: center; align-items: center; }
+    .btn-sm { font-size: 0.95rem; border-radius: 7px; padding: 0.35rem 1.1rem; }
+    .btn-primary { background: #1976d2; border: none; }
+    .btn-primary:hover { background: #1565c0; }
+    .btn-danger { background: #e53935; border: none; }
+    .btn-danger:hover { background: #b71c1c; }
+    @media (max-width: 1000px) {
+      .container, .card, .json-output, .json-output-table { max-width: 100vw; }
+      form { max-width: 98vw; }
+    }
+    @media (max-width: 900px) {
+      .card-body { padding: 1.2rem 0.5rem; }
+      form { max-width: 100vw; }
+      .json-output, .json-output-table { max-width: 100vw; }
+      .json-output-table th, .json-output-table td { padding: 0.5rem 0.3rem; font-size: 0.98rem; }
+    }
+    @media (max-width: 600px) {
+      .card { border-radius: 0; }
+      .card-body { padding: 0.5rem 0.1rem; }
+      form { padding: 0.5rem 0.1rem; }
+      .json-output, .json-output-table { padding: 0.5rem 0.1rem; }
+      .json-output-table th, .json-output-table td { padding: 0.3rem 0.1rem; font-size: 0.93rem; }
+    }
   </style>
 </head>
 <body>
@@ -21,95 +93,265 @@
     <h3 class="card-title">Cadastrar Paciente</h3>
     <form id="formPaciente">
       <input type="hidden" />
-      <div class="row g-2">
+      <div class="row g-2 mb-2">
         <div class="col"><input class="form-control" id="nome" placeholder="Nome"/></div>
         <div class="col"><input class="form-control" id="idade" placeholder="Idade" type="number"/></div>
         <div class="col"><select class="form-select" id="sexo">
-          <option value="F">Feminino</option><option value="M">Masculino</option></select></div>
+          <option value="F">Feminino</option><option value="M">Masculino</option><option value="N">Não Binário</option></select></div>
         <div class="col"><select class="form-select" id="plano">
           <option>Básico</option><option>Intermediário</option><option>Premium</option></select></div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col"><input class="form-control" id="cidade" placeholder="Cidade"/></div>
+        <div class="col"><input class="form-control" id="estado" placeholder="Estado"/></div>
+        <div class="col"><select class="form-select" id="possui_trat_preventivo">
+          <option value="true">Possui Trat. Preventivo</option>
+          <option value="false">Não Possui Trat. Preventivo</option></select></div>
+        <div class="col"><select class="form-select" id="possui_trat_curativo">
+          <option value="true">Possui Trat. Curativo</option>
+          <option value="false">Não Possui Trat. Curativo</option></select></div>
+        <div class="col"><input class="form-control" id="score_risco" placeholder="Score de Risco" type="number" step="0.01"/></div>
+      </div>
+      <div class="row g-2">
         <div class="col"><button class="btn btn-success w-100" type="submit">Salvar</button></div>
       </div>
     </form>
     <div id="outputPacientes" class="json-output mt-3">Carregando...</div>
+    <div class="tabela-scroll-wrapper">
+      <table class="json-output-table mt-3" id="tabelaPacientes" style="display:none;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Idade</th>
+            <th>Sexo</th>
+            <th>Plano</th>
+            <th>Cidade</th>
+            <th>Estado</th>
+            <th>Trat. Preventivo</th>
+            <th>Trat. Curativo</th>
+            <th>Score de Risco</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div></div>
 
   <!-- Consultas -->
   <div class="card"><div class="card-body">
     <h3 class="card-title">Cadastrar Consulta</h3>
     <form id="formConsulta">
-      <div class="row g-2">
+      <div class="row g-2 mb-2">
         <div class="col"><input class="form-control" id="pacienteConsulta" placeholder="ID do Paciente"/></div>
         <div class="col"><input class="form-control" id="dentistaId" placeholder="Dentista"/></div>
+        <div class="col"><input class="form-control" id="especialidade" placeholder="Especialidade"/></div>
         <div class="col"><input class="form-control" id="dataConsulta" type="date"/></div>
         <div class="col"><select class="form-select" id="tipoConsulta">
+          <option value="curativa">Curativa</option>
           <option value="preventiva">Preventiva</option>
-          <option value="curativa">Curativa</option></select></div>
+        </select></div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col"><input class="form-control" id="observacoes" placeholder="Observações"/></div>
+        <div class="col"><select class="form-select" id="realizada">
+          <option value="false">Não Realizada</option>
+          <option value="true">Realizada</option>
+        </select></div>
         <div class="col"><button class="btn btn-success w-100" type="submit">Salvar</button></div>
       </div>
     </form>
     <div id="outputConsultas" class="json-output mt-3">Carregando...</div>
+    <div class="tabela-scroll-wrapper">
+      <table class="json-output-table mt-3" id="tabelaConsultas" style="display:none;">
+        <thead>
+          <tr>
+            <th>ID Paciente</th>
+            <th>Dentista</th>
+            <th>Especialidade</th>
+            <th>Data da Consulta</th>
+            <th>Tipo de Consulta</th>
+            <th>Observações</th>
+            <th>Realizada</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div></div>
 
   <!-- Tratamentos -->
   <div class="card"><div class="card-body">
     <h3 class="card-title">Cadastrar Tratamento</h3>
     <form id="formTratamento">
-      <div class="row g-2">
+      <div class="row g-2 mb-2">
         <div class="col"><input class="form-control" id="pacienteTratamento" placeholder="ID Paciente"/></div>
-        <div class="col"><input class="form-control" id="descricaoTratamento" placeholder="Descrição"/></div>
-        <div class="col"><input class="form-control" id="dataTratamento" type="date"/></div>
-        <div class="col"><input class="form-control" id="custoEstimado" type="number" placeholder="Custo"/></div>
-        <div class="col"><select class="form-select" id="tipoTratamento">
-          <option>preventivo</option><option>curativo</option></select></div>
+        <div class="col"><input class="form-control" id="tipoTratamento" placeholder="Tipo de Tratamento"/></div>
+        <div class="col"><input class="form-control" id="profissional_responsavel" placeholder="Profissional Responsável"/></div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col"><input class="form-control" id="dataTratamento" type="date" placeholder="Data de Início"/></div>
+        <div class="col"><input class="form-control" id="custoEstimado" type="number" placeholder="Custo Estimado" step="0.01"/></div>
+        <div class="col"><input class="form-control" id="status" placeholder="Status"/></div>
         <div class="col"><button class="btn btn-success w-100" type="submit">Salvar</button></div>
       </div>
     </form>
     <div id="outputTratamentos" class="json-output mt-3">Carregando...</div>
+    <div class="tabela-scroll-wrapper">
+      <table class="json-output-table mt-3" id="tabelaTratamentos" style="display:none;">
+        <thead>
+          <tr>
+            <th>ID Paciente</th>
+            <th>Tipo de Tratamento</th>
+            <th>Profissional Responsável</th>
+            <th>Data de Início</th>
+            <th>Custo Estimado</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div></div>
 
   <!-- Incentivos -->
   <div class="card"><div class="card-body">
     <h3 class="card-title">Cadastrar Incentivo</h3>
     <form id="formIncentivo">
-      <div class="row g-2">
+      <div class="row g-2 mb-2">
         <div class="col"><input class="form-control" id="tituloIncentivo" placeholder="Título"/></div>
         <div class="col"><input class="form-control" id="descricaoIncentivo" placeholder="Descrição"/></div>
-        <div class="col"><input class="form-control" id="bonusIncentivo" type="number" placeholder="Pontos"/></div>
+        <div class="col"><input class="form-control" id="pontosRecompensa" type="number" placeholder="Pontos de Recompensa"/></div>
+        <div class="col"><select class="form-select" id="ativo">
+          <option value="true">Ativo</option>
+          <option value="false">Inativo</option>
+        </select></div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col"><input class="form-control" id="data_inicio_incentivo" type="date" placeholder="Data de Início"/></div>
+        <div class="col"><input class="form-control" id="data_fim_incentivo" type="date" placeholder="Data de Fim"/></div>
         <div class="col"><button class="btn btn-success w-100" type="submit">Salvar</button></div>
       </div>
     </form>
     <div id="outputIncentivos" class="json-output mt-3">Carregando...</div>
+    <div class="tabela-scroll-wrapper">
+      <table class="json-output-table mt-3" id="tabelaIncentivos" style="display:none;">
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Descrição</th>
+            <th>Pontos de Recompensa</th>
+            <th>Ativo</th>
+            <th>Data de Início</th>
+            <th>Data de Fim</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div></div>
 
   <!-- Gamificação -->
   <div class="card"><div class="card-body">
     <h3 class="card-title">Cadastrar Dados de Gamificação</h3>
     <form id="formGamificacao">
-      <div class="row g-2">
+      <div class="row g-2 mb-2">
         <div class="col"><input class="form-control" id="pacienteGamificacao" placeholder="ID Paciente"/></div>
-        <div class="col"><input class="form-control" id="pontosGamificacao" type="number" placeholder="Pontos"/></div>
-        <div class="col"><input class="form-control" id="conquistasGamificacao" placeholder="Conquistas (separadas por vírgula)"/></div>
+        <div class="col"><input class="form-control" id="desafio" placeholder="Desafio"/></div>
+        <div class="col"><select class="form-select" id="concluido">
+          <option value="false">Não Concluído</option>
+          <option value="true">Concluído</option>
+        </select></div>
+        <div class="col"><input class="form-control" id="pontos_ganhos" type="number" placeholder="Pontos Ganhos"/></div>
+        <div class="col"><input class="form-control" id="data_conclusao" type="date" placeholder="Data de Conclusão"/></div>
         <div class="col"><button class="btn btn-success w-100" type="submit">Salvar</button></div>
       </div>
     </form>
     <div id="outputGamificacao" class="json-output mt-3">Carregando...</div>
+    <div class="tabela-scroll-wrapper">
+      <table class="json-output-table mt-3" id="tabelaGamificacao" style="display:none;">
+        <thead>
+          <tr>
+            <th>ID Paciente</th>
+            <th>Desafio</th>
+            <th>Concluído</th>
+            <th>Pontos Ganhos</th>
+            <th>Data de Conclusão</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div></div>
 
   <!-- Documentos -->
   <div class="card"><div class="card-body">
     <h3 class="card-title">Cadastrar Documentos do Paciente</h3>
     <form id="formDocumento">
-      <div class="row g-2">
+      <div class="row g-2 mb-2">
         <div class="col"><input class="form-control" id="pacienteDocumento" placeholder="ID Paciente"/></div>
-        <div class="col"><input class="form-control" id="tipoDocumento" placeholder="Tipo"/></div>
-        <div class="col"><input class="form-control" id="urlDocumento" placeholder="Link"/></div>
+        <div class="col"><input class="form-control" id="tipo_documento" placeholder="Tipo de Documento"/></div>
+        <div class="col"><input class="form-control" id="url_arquivo" placeholder="URL do Arquivo"/></div>
+        <div class="col"><input class="form-control" id="descricaoDocumento" placeholder="Descrição"/></div>
+        <div class="col"><input class="form-control" id="data_upload" type="date" placeholder="Data de Upload"/></div>
         <div class="col"><button class="btn btn-success w-100" type="submit">Salvar</button></div>
       </div>
     </form>
     <div id="outputDocumentos" class="json-output mt-3">Carregando...</div>
+    <div class="tabela-scroll-wrapper">
+      <table class="json-output-table mt-3" id="tabelaDocumentos" style="display:none;">
+        <thead>
+          <tr>
+            <th>ID Paciente</th>
+            <th>Tipo de Documento</th>
+            <th>URL do Arquivo</th>
+            <th>Descrição</th>
+            <th>Data de Upload</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div></div>
 </div>
 <script src="/public/main.js"></script>
+<script>
+  // Inicializa DataTables em todas as tabelas após carregamento dos dados
+  function aplicarDataTables() {
+    $(function() {
+      [
+        '#tabelaPacientes',
+        '#tabelaConsultas',
+        '#tabelaTratamentos',
+        '#tabelaIncentivos',
+        '#tabelaGamificacao',
+        '#tabelaDocumentos'
+      ].forEach(function(id) {
+        if ($(id).length && !$.fn.dataTable.isDataTable(id)) {
+          $(id).DataTable({
+            language: {
+              url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json'
+            },
+            responsive: true,
+            paging: true,
+            searching: true,
+            info: true,
+            ordering: true,
+            scrollX: true // Ativa scroll horizontal nativo do DataTables
+          });
+        }
+      });
+    });
+  }
+</script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 </body>
 </html>
