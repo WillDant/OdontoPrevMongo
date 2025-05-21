@@ -5,7 +5,7 @@ async function carregarPacientes() {
     const dados = await res.json();
     const out = document.getElementById('outputPacientes');
     out.innerHTML = `
-      <table class="json-output-table" id="tabelaPacientes">
+      <table class="json-output-table display nowrap" id="tabelaPacientes">
         <thead>
           <tr>
             <th>ID</th>

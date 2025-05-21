@@ -6,6 +6,7 @@
   <title>Odontoprev - Sistema CRUD</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
+  <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet"/>
   <style>
     body { padding: 2rem; background: linear-gradient(135deg, #e3f0ff 0%, #b0cfff 100%); min-height: 100vh; }
     .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
@@ -17,46 +18,92 @@
     .json-output { background: #e3f2fd; padding: 1.2rem; border-radius: 14px; border: 1.5px solid #90caf9; font-size: 1rem; color: #0d47a1; }
     .tabela-scroll-wrapper {
       width: 100%;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
     }
     .json-output-table {
-      min-width: 900px;
-      width: 100%;
-      max-width: none;
+      width: 100% !important;
       background: #f4faff;
       border-radius: 10px;
       border: 1.5px solid #90caf9;
-      margin-top: 1rem;
-      table-layout: auto;
-      display: table;
+      margin: 0;
     }
-    .json-output-table thead, .json-output-table tbody {
+    .dataTables_wrapper {
       width: 100%;
-      display: table;
-      table-layout: auto;
+      overflow-x: auto;
+      padding: 1rem 0;
     }
-    .json-output-table th, .json-output-table td {
-      padding: 0.7rem 1.1rem;
-      text-align: center !important;
+    /* Estilos para garantir que as colunas mantenham suas larguras */
+    .json-output-table th,
+    .json-output-table td {
+      min-width: 120px; /* Largura base para todas as colunas */
+    }
+    /* Larguras específicas para diferentes tipos de colunas */
+    .json-output-table th:first-child,
+    .json-output-table td:first-child {
+      min-width: 80px; /* Colunas de ID */
+    }
+    .json-output-table th:nth-child(2),
+    .json-output-table td:nth-child(2) {
+      min-width: 200px; /* Colunas de nome/título */
+    }
+    .json-output-table th:last-child,
+    .json-output-table td:last-child {
+      min-width: 150px; /* Coluna de ações */
+      width: 150px;
+    }
+    .json-output-table.dtr-inline.collapsed>tbody>tr>td.dtr-control:before,
+    .json-output-table.dtr-inline.collapsed>tbody>tr>th.dtr-control:before {
+      background-color: #1976d2;
+    }
+    .modal-dialog {
+      max-width: 90%;
+      margin: 1.75rem auto;
+    }
+    @media (max-width: 768px) {
+      .modal-dialog {
+        max-width: 95%;
+        margin: 1rem auto;
+      }
+    }
+    .json-output-table th, 
+    .json-output-table td {
+      padding: 0.8rem 1rem;
+      text-align: left !important;
       vertical-align: middle;
-      word-break: break-word;
-      white-space: normal;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .json-output-table th {
       background: #1976d2;
       color: #fff;
       font-weight: 600;
       border-bottom: 2px solid #90caf9;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
     .json-output-table tr {
       border-bottom: 1px solid #bbdefb;
     }
+    .json-output-table tbody tr:hover {
+      background-color: #f5f9ff;
+    }
     .json-output-table td {
       background: #e3f0ff;
+      max-width: 300px; /* Limita o tamanho máximo da célula */
     }
     .json-output-table td:last-child {
       white-space: nowrap;
+      background: #e3f0ff;
+    }
+    /* Estilo para células com conteúdo longo */
+    .json-output-table td.long-content {
+      cursor: pointer;
+    }
+    .json-output-table td.long-content:hover {
+      color: #1976d2;
     }
     .paciente-actions, .acoes-tabela { display: flex; gap: 0.5rem; justify-content: center; align-items: center; }
     .btn-sm { font-size: 0.95rem; border-radius: 7px; padding: 0.35rem 1.1rem; }
@@ -119,22 +166,7 @@
     <div id="outputPacientes" class="json-output mt-3">Carregando...</div>
     <div class="tabela-scroll-wrapper">
       <table class="json-output-table mt-3" id="tabelaPacientes" style="display:none;">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Idade</th>
-            <th>Sexo</th>
-            <th>Plano</th>
-            <th>Cidade</th>
-            <th>Estado</th>
-            <th>Trat. Preventivo</th>
-            <th>Trat. Curativo</th>
-            <th>Score de Risco</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
+        
       </table>
     </div>
   </div></div>
@@ -165,19 +197,7 @@
     <div id="outputConsultas" class="json-output mt-3">Carregando...</div>
     <div class="tabela-scroll-wrapper">
       <table class="json-output-table mt-3" id="tabelaConsultas" style="display:none;">
-        <thead>
-          <tr>
-            <th>ID Paciente</th>
-            <th>Dentista</th>
-            <th>Especialidade</th>
-            <th>Data da Consulta</th>
-            <th>Tipo de Consulta</th>
-            <th>Observações</th>
-            <th>Realizada</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
+        
       </table>
     </div>
   </div></div>
@@ -201,18 +221,6 @@
     <div id="outputTratamentos" class="json-output mt-3">Carregando...</div>
     <div class="tabela-scroll-wrapper">
       <table class="json-output-table mt-3" id="tabelaTratamentos" style="display:none;">
-        <thead>
-          <tr>
-            <th>ID Paciente</th>
-            <th>Tipo de Tratamento</th>
-            <th>Profissional Responsável</th>
-            <th>Data de Início</th>
-            <th>Custo Estimado</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
       </table>
     </div>
   </div></div>
@@ -239,18 +247,6 @@
     <div id="outputIncentivos" class="json-output mt-3">Carregando...</div>
     <div class="tabela-scroll-wrapper">
       <table class="json-output-table mt-3" id="tabelaIncentivos" style="display:none;">
-        <thead>
-          <tr>
-            <th>Título</th>
-            <th>Descrição</th>
-            <th>Pontos de Recompensa</th>
-            <th>Ativo</th>
-            <th>Data de Início</th>
-            <th>Data de Fim</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
       </table>
     </div>
   </div></div>
@@ -274,17 +270,6 @@
     <div id="outputGamificacao" class="json-output mt-3">Carregando...</div>
     <div class="tabela-scroll-wrapper">
       <table class="json-output-table mt-3" id="tabelaGamificacao" style="display:none;">
-        <thead>
-          <tr>
-            <th>ID Paciente</th>
-            <th>Desafio</th>
-            <th>Concluído</th>
-            <th>Pontos Ganhos</th>
-            <th>Data de Conclusão</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
       </table>
     </div>
   </div></div>
@@ -305,17 +290,6 @@
     <div id="outputDocumentos" class="json-output mt-3">Carregando...</div>
     <div class="tabela-scroll-wrapper">
       <table class="json-output-table mt-3" id="tabelaDocumentos" style="display:none;">
-        <thead>
-          <tr>
-            <th>ID Paciente</th>
-            <th>Tipo de Documento</th>
-            <th>URL do Arquivo</th>
-            <th>Descrição</th>
-            <th>Data de Upload</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
       </table>
     </div>
   </div></div>
@@ -334,16 +308,49 @@
         '#tabelaDocumentos'
       ].forEach(function(id) {
         if ($(id).length && !$.fn.dataTable.isDataTable(id)) {
-          $(id).DataTable({
+          let table = $(id).DataTable({
             language: {
               url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json'
             },
-            responsive: true,
+            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            scrollX: true,
+            scrollCollapse: true,
             paging: true,
             searching: true,
             info: true,
             ordering: true,
-            scrollX: true // Ativa scroll horizontal nativo do DataTables
+            autoWidth: false,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+            columnDefs: [
+              {
+                targets: '_all',
+                render: function(data, type, row) {
+                  if (type === 'display' && data != null) {
+                    let str = data.toString();
+                    if (str.length > 50) {
+                      return '<span class="long-content" title="' + str + '">' + 
+                             str.substr(0, 50) + '...</span>';
+                    }
+                    return str;
+                  }
+                  return data;
+                }
+              },
+              {
+                targets: -1, // Última coluna (Ações)
+                orderable: false,
+                className: 'text-center'
+              }
+            ],
+            drawCallback: function() {
+              // Adiciona tooltips para conteúdo longo
+              $('.long-content').on('click', function() {
+                alert($(this).attr('title'));
+              });
+            }
           });
         }
       });
@@ -353,5 +360,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 </body>
 </html>
