@@ -134,42 +134,44 @@
 <div class="container">
   <h1 class="text-primary mb-4 text-center">Sistema Odontoprev - Gerenciamento de Dados</h1>
 
-  <!-- Reutilizável: cardForm(id, titulo, formHTML, outputId) -->
-  <!-- Pacientes -->
-  <div class="card"><div class="card-body">
-    <h3 class="card-title">Cadastrar Paciente</h3>
-    <form id="formPaciente">
-      <input type="hidden" />
-      <div class="row g-2 mb-2">
-        <div class="col"><input class="form-control" id="nome" placeholder="Nome"/></div>
-        <div class="col"><input class="form-control" id="idade" placeholder="Idade" type="number"/></div>
-        <div class="col"><select class="form-select" id="sexo">
-          <option value="F">Feminino</option><option value="M">Masculino</option><option value="N">Não Binário</option></select></div>
-        <div class="col"><select class="form-select" id="plano">
-          <option>Básico</option><option>Intermediário</option><option>Premium</option></select></div>
+  <!-- Reutilizável: cardForm(id, titulo, formHTML, outputId) -->  <!-- Pacientes -->
+  <div class="card">
+    <div class="card-body">
+      <h3 class="card-title">Cadastrar Paciente</h3>
+      <form id="formPaciente">
+        <input type="hidden" />
+        <div class="row g-2 mb-2">
+          <div class="col"><input class="form-control" id="nome" placeholder="Nome"/></div>
+          <div class="col"><input class="form-control" id="idade" placeholder="Idade" type="number"/></div>
+          <div class="col"><select class="form-select" id="sexo">
+            <option value="E">Sexo do paciente</option><option value="F">Feminino</option><option value="M">Masculino</option><option value="N">Não Binário</option></select></div>
+          <div class="col"><select class="form-select" id="plano">
+            <option>Básico</option><option>Intermediário</option><option>Premium</option></select></div>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col"><input class="form-control" id="cidade" placeholder="Cidade"/></div>
+          <div class="col"><input class="form-control" id="estado" placeholder="Estado"/></div>
+          <div class="col"><select class="form-select" id="possui_trat_preventivo">
+            <option value="true">Possui Trat. Preventivo</option>
+            <option value="false">Não Possui Trat. Preventivo</option></select></div>
+          <div class="col"><select class="form-select" id="possui_trat_curativo">
+            <option value="true">Possui Trat. Curativo</option>
+            <option value="false">Não Possui Trat. Curativo</option></select></div>
+          <div class="col"><input class="form-control" id="score_risco" placeholder="Score de Risco" type="number" step="0.01"/></div>
+        </div>
+        <div class="row g-2">
+          <div class="col"><button class="btn btn-success w-100" type="submit">Salvar</button></div>
+        </div>
+      </form>
+      <div id="cardsPacientes">
+        <div id="outputPacientes" class="json-output mt-3">Carregando...</div>
+        <div class="tabela-scroll-wrapper">
+          <table class="json-output-table mt-3" id="tabelaPacientes" style="display:none;">
+          </table>
+        </div>
       </div>
-      <div class="row g-2 mb-2">
-        <div class="col"><input class="form-control" id="cidade" placeholder="Cidade"/></div>
-        <div class="col"><input class="form-control" id="estado" placeholder="Estado"/></div>
-        <div class="col"><select class="form-select" id="possui_trat_preventivo">
-          <option value="true">Possui Trat. Preventivo</option>
-          <option value="false">Não Possui Trat. Preventivo</option></select></div>
-        <div class="col"><select class="form-select" id="possui_trat_curativo">
-          <option value="true">Possui Trat. Curativo</option>
-          <option value="false">Não Possui Trat. Curativo</option></select></div>
-        <div class="col"><input class="form-control" id="score_risco" placeholder="Score de Risco" type="number" step="0.01"/></div>
-      </div>
-      <div class="row g-2">
-        <div class="col"><button class="btn btn-success w-100" type="submit">Salvar</button></div>
-      </div>
-    </form>
-    <div id="outputPacientes" class="json-output mt-3">Carregando...</div>
-    <div class="tabela-scroll-wrapper">
-      <table class="json-output-table mt-3" id="tabelaPacientes" style="display:none;">
-        
-      </table>
     </div>
-  </div></div>
+  </div>
 
   <!-- Consultas -->
   <div class="card"><div class="card-body">
@@ -294,73 +296,86 @@
     </div>
   </div></div>
 </div>
-<script src="/public/main.js"></script>
-<script>
-  // Inicializa DataTables em todas as tabelas após carregamento dos dados
-  function aplicarDataTables() {
-    $(function() {
-      [
-        '#tabelaPacientes',
-        '#tabelaConsultas',
-        '#tabelaTratamentos',
-        '#tabelaIncentivos',
-        '#tabelaGamificacao',
-        '#tabelaDocumentos'
-      ].forEach(function(id) {
-        if ($(id).length && !$.fn.dataTable.isDataTable(id)) {
-          let table = $(id).DataTable({
-            language: {
-              url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json'
-            },
-            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                 "<'row'<'col-sm-12'tr>>" +
-                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            scrollX: true,
-            scrollCollapse: true,
-            paging: true,
-            searching: true,
-            info: true,
-            ordering: true,
-            autoWidth: false,
-            pageLength: 10,
-            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
-            columnDefs: [
-              {
-                targets: '_all',
-                render: function(data, type, row) {
-                  if (type === 'display' && data != null) {
-                    let str = data.toString();
-                    if (str.length > 50) {
-                      return '<span class="long-content" title="' + str + '">' + 
-                             str.substr(0, 50) + '...</span>';
-                    }
-                    return str;
-                  }
-                  return data;
-                }
-              },
-              {
-                targets: -1, // Última coluna (Ações)
-                orderable: false,
-                className: 'text-center'
-              }
-            ],
-            drawCallback: function() {
-              // Adiciona tooltips para conteúdo longo
-              $('.long-content').on('click', function() {
-                alert($(this).attr('title'));
-              });
-            }
-          });
-        }
-      });
-    });
-  }
-</script>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="modalConfirmDelete" tabindex="-1" aria-labelledby="modalConfirmDeleteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalConfirmDeleteLabel">Confirmar Exclusão</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        Tem certeza que deseja excluir este item?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmDelete">Excluir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts - Ordem correta de carregamento -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+<script src="/public/main.js"></script>
+
+<footer style="background-color: #f8f9fa; padding: 30px 0; margin-top: 30px;">
+  <div class="container">
+    <h3 class="text-center mb-4" style="color: #1565c0;">Equipe do Projeto</h3>
+    <div class="row justify-content-center">
+      <!-- Integrante 1 -->
+      <div class="col-md-4 mb-4">
+        <div class="card text-center">
+          <div class="card-body">
+            <img src="https://github.com/WillDant.png" alt="Willian Dantas" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #1976d2;">
+            <h5 class="card-title" style="color: #1565c0; font-weight: 600;">Willian Dantas</h5>
+            <p class="card-text">Desenvolvedor Full Stack</p>
+            <a href="https://github.com/Willdant" target="_blank" class="btn btn-primary">
+              <i class="fab fa-github"></i> GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Integrante 2 -->
+      <div class="col-md-4 mb-4">
+        <div class="card text-center">
+          <div class="card-body">
+            <img src="https://github.com/jvs4nt.png" alt="João Vitor Santana" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #1976d2;">
+            <h5 class="card-title" style="color: #1565c0; font-weight: 600;">João Vitor Santana</h5>
+            <p class="card-text">Desenvolvedor Full Stack</p>
+            <a href="https://github.com/jvs4nt" target="_blank" class="btn btn-primary">
+              <i class="fab fa-github"></i> GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Integrante 3 -->
+      <div class="col-md-4 mb-4">
+        <div class="card text-center">
+          <div class="card-body">
+            <img src="https://github.com/RyanAzanha.png" alt="Ryan Azanha" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #1976d2;">
+            <h5 class="card-title" style="color: #1565c0; font-weight: 600;">Ryan Azanha</h5>
+            <p class="card-text">Desenvolvedor Full Stack</p>
+            <a href="https://github.com/RyanAzanha" target="_blank" class="btn btn-primary">
+              <i class="fab fa-github"></i> GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Adicionar Font Awesome para os ícones -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 </body>
 </html>
