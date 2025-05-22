@@ -1,51 +1,112 @@
 console.log('main.js loaded');
+
+// Utilitário para exclusão com modal
+let deleteAction = null;
+let deleteModal = null;
+
+function abrirModalExclusao(callback) {
+  deleteAction = callback;
+  if (!deleteModal) {
+    deleteModal = new bootstrap.Modal(document.getElementById('modalConfirmDelete'));
+  }
+  deleteModal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('btnConfirmDelete');
+  if (btn) {
+    btn.onclick = async function() {
+      if (typeof deleteAction === 'function') {
+        await deleteAction();
+      }
+      if (deleteModal) {
+        deleteModal.hide();
+      }
+    };
+  }
+});
+
 // === PACIENTES ===
 async function carregarPacientes() {
     const res = await fetch('/pacientes');
     const dados = await res.json();
-    const out = document.getElementById('outputPacientes');
-    out.innerHTML = `
-      <table class="json-output-table" id="tabelaPacientes">
+    const tabela = document.getElementById('tabelaPacientes');
+    tabela.style.display = 'table';
+    
+    // Limpa a tabela atual se existir
+    if ($.fn.DataTable.isDataTable('#tabelaPacientes')) {
+        $('#tabelaPacientes').DataTable().destroy();
+    }
+    
+    // Preenche a tabela com os dados
+    tabela.innerHTML = `
         <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Idade</th>
-            <th>Sexo</th>
-            <th>Plano</th>
-            <th>Cidade</th>
-            <th>Estado</th>
-            <th>Preventivo</th>
-            <th>Curativo</th>
-            <th>Score</th>
-            <th>Ações</th>
-          </tr>
+            <tr>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Sexo</th>
+                <th>Plano</th>
+                <th>Cidade</th>
+                <th>Estado</th>
+                <th>Preventivo</th>
+                <th>Curativo</th>
+                <th>Score</th>
+                <th>Ações</th>
+            </tr>
         </thead>
         <tbody>
-          ${dados.map(p => `
-            <tr>
-              <td>${p._id}</td>
-              <td>${p.nome}</td>
-              <td>${p.idade}</td>
-              <td>${p.sexo}</td>
-              <td>${p.plano}</td>
-              <td>${p.cidade || ''}</td>
-              <td>${p.estado || ''}</td>
-              <td>${p.possui_trat_preventivo ? 'Sim' : 'Não'}</td>
-              <td>${p.possui_trat_curativo ? 'Sim' : 'Não'}</td>
-              <td>${p.score_risco ?? ''}</td>
-              <td>
-                <div class="paciente-actions">
-                  <button onclick="editarPaciente('${p._id}')" class="btn btn-sm btn-primary">Editar</button>
-                  <button onclick="deletarPaciente('${p._id}')" class="btn btn-sm btn-danger">Excluir</button>
-                </div>
-              </td>
-            </tr>
-          `).join('')}
+            ${dados.map(p => `
+                <tr>
+                    <td>${p.nome}</td>
+                    <td>${p.idade}</td>
+                    <td>${p.sexo}</td>
+                    <td>${p.plano}</td>
+                    <td>${p.cidade || ''}</td>
+                    <td>${p.estado || ''}</td>
+                    <td>${p.possui_trat_preventivo ? 'Sim' : 'Não'}</td>
+                    <td>${p.possui_trat_curativo ? 'Sim' : 'Não'}</td>
+                    <td>${p.score_risco ?? ''}</td>
+                    <td>
+                        <div class="acoes-tabela">
+                            <button onclick="editarPaciente('${p._id}')" class="btn btn-sm btn-primary">Editar</button>
+                            <button onclick="deletarPaciente('${p._id}')" class="btn btn-sm btn-danger">Excluir</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')}
         </tbody>
-      </table>
     `;
-    aplicarDataTables();
+
+    // Remove mensagem de carregamento
+    document.getElementById('outputPacientes').textContent = '';
+
+    // Inicializa o DataTables
+    $(tabela).DataTable({
+        language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json'
+        },
+        order: [[0, 'asc']],
+        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+             "<'row'<'col-sm-12'tr>>" +
+             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        scrollX: true,
+        scrollCollapse: true,
+        paging: true,
+        searching: true,
+        info: true,
+        ordering: true,
+        autoWidth: false,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        columnDefs: [
+            {
+                targets: -1,
+                orderable: false,
+                className: 'text-center',
+                searchable: false
+            }
+        ]
+    });
 }
 document.getElementById('formPaciente').addEventListener('submit', async e => {
     e.preventDefault();
@@ -78,7 +139,10 @@ async function editarPaciente(id) {
     document.getElementById('formPaciente').dataset.id = p._id;
 }
 async function deletarPaciente(id) {
-    if (confirm('Excluir paciente?')) await fetch(`/pacientes/${id}`, { method: 'DELETE' }), carregarPacientes();
+  abrirModalExclusao(async () => {
+    await fetch(`/pacientes/${id}`, { method: 'DELETE' });
+    carregarPacientes();
+  });
 }
 
 // === CONSULTAS ===
@@ -87,10 +151,9 @@ async function carregarConsultas() {
     const dados = await res.json();
     const out = document.getElementById('outputConsultas');
     out.innerHTML = `
-      <table class="json-output-table" id="tabelaConsultas">
+      <table class="json-output-table display nowrap" id="tabelaConsultas">
         <thead>
           <tr>
-            <th>ID</th>
             <th>ID Paciente</th>
             <th>Dentista</th>
             <th>Especialidade</th>
@@ -104,7 +167,6 @@ async function carregarConsultas() {
         <tbody>
           ${dados.map(c => `
             <tr>
-              <td>${c._id}</td>
               <td>${c.pacienteId}</td>
               <td>${c.dentista}</td>
               <td>${c.especialidade || ''}</td>
@@ -154,7 +216,10 @@ async function editarConsulta(id) {
     document.getElementById('formConsulta').dataset.id = c._id;
 }
 async function deletarConsulta(id) {
-    if (confirm('Excluir consulta?')) await fetch(`/consultas/${id}`, { method: 'DELETE' }), carregarConsultas();
+  abrirModalExclusao(async () => {
+    await fetch(`/consultas/${id}`, { method: 'DELETE' });
+    carregarConsultas();
+  });
 }
 
 // === TRATAMENTOS ===
@@ -163,10 +228,9 @@ async function carregarTratamentos() {
     const dados = await res.json();
     const out = document.getElementById('outputTratamentos');
     out.innerHTML = `
-      <table class="json-output-table" id="tabelaTratamentos">
+      <table class="json-output-table display nowrap" id="tabelaTratamentos">
         <thead>
           <tr>
-            <th>ID</th>
             <th>ID Paciente</th>
             <th>Tipo</th>
             <th>Profissional</th>
@@ -179,7 +243,6 @@ async function carregarTratamentos() {
         <tbody>
           ${dados.map(t => `
             <tr>
-              <td>${t._id}</td>
               <td>${t.pacienteId}</td>
               <td>${t.tipo_tratamento}</td>
               <td>${t.profissional_responsavel}</td>
@@ -227,7 +290,10 @@ async function editarTratamento(id) {
     document.getElementById('formTratamento').dataset.id = t._id;
 }
 async function deletarTratamento(id) {
-    if (confirm('Excluir tratamento?')) await fetch(`/tratamentos/${id}`, { method: 'DELETE' }), carregarTratamentos();
+  abrirModalExclusao(async () => {
+    await fetch(`/tratamentos/${id}`, { method: 'DELETE' });
+    carregarTratamentos();
+  });
 }
 
 // === INCENTIVOS ===
@@ -299,7 +365,10 @@ async function editarIncentivo(id) {
     document.getElementById('formIncentivo').dataset.id = i._id;
 }
 async function deletarIncentivo(id) {
-    if (confirm('Excluir incentivo?')) await fetch(`/incentivos/${id}`, { method: 'DELETE' }), carregarIncentivos();
+  abrirModalExclusao(async () => {
+    await fetch(`/incentivos/${id}`, { method: 'DELETE' });
+    carregarIncentivos();
+  });
 }
 
 // === GAMIFICAÇÃO ===
@@ -311,7 +380,6 @@ async function carregarGamificacao() {
       <table class="json-output-table" id="tabelaGamificacao">
         <thead>
           <tr>
-            <th>ID</th>
             <th>ID Paciente</th>
             <th>Desafio</th>
             <th>Concluído</th>
@@ -323,7 +391,6 @@ async function carregarGamificacao() {
         <tbody>
           ${dados.map(g => `
             <tr>
-              <td>${g._id}</td>
               <td>${g.pacienteId}</td>
               <td>${g.desafio}</td>
               <td>${g.concluido ? 'Sim' : 'Não'}</td>
@@ -367,7 +434,10 @@ async function editarGamificacao(id) {
     document.getElementById('formGamificacao').dataset.id = g._id;
 }
 async function deletarGamificacao(id) {
-    if (confirm('Excluir gamificação?')) await fetch(`/gamificacao/${id}`, { method: 'DELETE' }), carregarGamificacao();
+  abrirModalExclusao(async () => {
+    await fetch(`/gamificacao/${id}`, { method: 'DELETE' });
+    carregarGamificacao();
+  });
 }
 
 // === DOCUMENTOS ===
@@ -379,7 +449,6 @@ async function carregarDocumentos() {
       <table class="json-output-table" id="tabelaDocumentos">
         <thead>
           <tr>
-            <th>ID</th>
             <th>ID Paciente</th>
             <th>Tipo de Documento</th>
             <th>URL do Arquivo</th>
@@ -391,7 +460,6 @@ async function carregarDocumentos() {
         <tbody>
           ${dados.map(d => `
             <tr>
-              <td>${d._id}</td>
               <td>${d.pacienteId}</td>
               <td>${d.tipo_documento}</td>
               <td>${d.url_arquivo}</td>
@@ -435,7 +503,66 @@ async function editarDocumento(id) {
     document.getElementById('formDocumento').dataset.id = d._id;
 }
 async function deletarDocumento(id) {
-    if (confirm('Excluir documento?')) await fetch(`/documentos/${id}`, { method: 'DELETE' }), carregarDocumentos();
+  abrirModalExclusao(async () => {
+    await fetch(`/documentos/${id}`, { method: 'DELETE' });
+    carregarDocumentos();
+  });
+}
+
+// Corrige DataTables: NÃO use render para coluna de ações, apenas para conteúdo longo
+function aplicarDataTables() {
+  $(function() {
+    [
+      '#tabelaPacientes',
+      '#tabelaConsultas',
+      '#tabelaTratamentos',
+      '#tabelaIncentivos',
+      '#tabelaGamificacao',
+      '#tabelaDocumentos'
+    ].forEach(function(id) {
+      if ($(id).length && !$.fn.dataTable.isDataTable(id)) {
+        $(id).DataTable({
+          language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json'
+          },
+          dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+               "<'row'<'col-sm-12'tr>>" +
+               "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          scrollX: true,
+          scrollCollapse: true,
+          paging: true,
+          searching: true,
+          info: true,
+          ordering: true,
+          autoWidth: false,
+          pageLength: 10,
+          lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+          columnDefs: [
+            {
+              targets: -1, // Última coluna (Ações)
+              orderable: false,
+              className: 'text-center',
+              searchable: false
+            },
+            {
+              targets: '_all',
+              render: function(data, type, row, meta) {
+                if (meta.col !== row.length - 1 && type === 'display' && data != null && typeof data === 'string' && data.length > 50) {
+                  return '<span class="long-content" title="' + data + '">' + data.substr(0, 50) + '...</span>';
+                }
+                return data;
+              }
+            }
+          ],
+          drawCallback: function() {
+            $('.long-content').on('click', function() {
+              alert($(this).attr('title'));
+            });
+          }
+        });
+      }
+    });
+  });
 }
 
 // === Inicialização ===
